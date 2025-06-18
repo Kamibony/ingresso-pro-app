@@ -1,0 +1,10 @@
+﻿# Arquivos de ambiente - NUNCA versionar!
+.env
+
+# Banco de dados e arquivos temporários
+*.db
+*.db-journal*
+__pycache__/
+
+# Pasta do ambiente virtual
+venv/
