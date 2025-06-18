@@ -1,0 +1,10 @@
+﻿fastapi
+uvicorn[standard]
+sqlalchemy
+python-dotenv
+google-generativeai
+python-telegram-bot
+jinja2
+googlemaps
+requests
+python-multipart
