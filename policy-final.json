@@ -1,0 +1,145 @@
+﻿{
+    "bindings":  [
+                     {
+                         "members":  [
+                                         "serviceAccount:113710426874-compute@developer.gserviceaccount.com",
+                                         "user:equilibrium.probioticos@gmail.com"
+                                     ],
+                         "role":  "roles/aiplatform.user"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-artifactregistry.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/artifactregistry.serviceAgent"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-cloudaicompanion.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/cloudaicompanion.serviceAgent"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:113710426874@cloudbuild.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/cloudbuild.builds.builder"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/cloudbuild.serviceAgent"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@containerregistry.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/containerregistry.ServiceAgent"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:113710426874-compute@developer.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/datastore.user"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-devconnect.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/developerconnect.serviceAgent"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/developerconnect.tokenAccessor"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:113710426874-compute@developer.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/editor"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@firebase-rules.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/firebaserules.system"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-firestore.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/firestore.serviceAgent"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:113710426874-compute@developer.gserviceaccount.com",
+                                         "serviceAccount:concierge-builder@gen-lang-client-0288576877.iam.gserviceaccount.com",
+                                         "user:equilibrium.probioticos@gmail.com"
+                                     ],
+                         "role":  "roles/iam.serviceAccountUser"
+                     },
+                     {
+                         "members":  [
+                                         "user:equilibrium.probioticos@gmail.com"
+                                     ],
+                         "role":  "roles/owner"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-pubsub.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/pubsub.serviceAgent"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:113710426874@cloudbuild.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/run.admin"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:service-113710426874@serverless-robot-prod.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/run.serviceAgent"
+                     },
+                     {
+                         "condition":  {
+                                           "expression":  "request.time \u003c timestamp(\"2025-06-20T14:29:34.742Z\")",
+                                           "title":  "developer-connect-connection-setup"
+                                       },
+                         "members":  [
+                                         "serviceAccount:service-113710426874@gcp-sa-devconnect.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/secretmanager.admin"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:113710426874-compute@developer.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/secretmanager.secretAccessor"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:concierge-builder@gen-lang-client-0288576877.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/run.admin"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:concierge-builder@gen-lang-client-0288576877.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/iam.serviceAccountUser"
+                     },
+                     {
+                         "members":  [
+                                         "serviceAccount:concierge-builder@gen-lang-client-0288576877.iam.gserviceaccount.com"
+                                     ],
+                         "role":  "roles/cloudbuild.builds.builder"
+                     }
+                 ],
+    "etag":  "BwY4AU6iyFs=",
+    "version":  3
+}
