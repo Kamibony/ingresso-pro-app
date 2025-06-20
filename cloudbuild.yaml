@@ -13,12 +13,13 @@ steps:
   args:
     - 'run'
     - 'deploy'
-    - 'concierge-pro-service' # Nome do nosso serviço no Cloud Run
+    - 'concierge-pro-service'
     - '--image=gcr.io/$PROJECT_ID/concierge-pro:$COMMIT_SHA'
     - '--region=southamerica-east1'
     - '--platform=managed'
     - '--allow-unauthenticated'
+    # --- LINHA ADICIONADA: Diz ao serviço para rodar com a mesma identidade do builder ---
+    - '--service-account=concierge-builder@$PROJECT_ID.iam.gserviceaccount.com'
 
-# --- ADICIONADO: Configuração de Opções de Logging ---
 options:
   logging: CLOUD_LOGGING_ONLY
