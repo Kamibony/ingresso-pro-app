@@ -1,11 +1,11 @@
-﻿steps:
+steps:
 # 1. Constrói a imagem do contêiner
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/concierge-platform-463514/concierge-pro:', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/concierge-pro:$COMMIT_SHA', '.']
 
 # 2. Envia a imagem para o Artifact Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/concierge-platform-463514/concierge-pro:']
+  args: ['push', 'gcr.io/$PROJECT_ID/concierge-pro:$COMMIT_SHA']
 
 # 3. Implanta a nova imagem no Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -14,7 +14,11 @@
     - 'run'
     - 'deploy'
     - 'concierge-pro-service' # Nome do nosso serviço no Cloud Run
-    - '--image=gcr.io/concierge-platform-463514/concierge-pro:'
+    - '--image=gcr.io/$PROJECT_ID/concierge-pro:$COMMIT_SHA'
     - '--region=southamerica-east1'
     - '--platform=managed'
     - '--allow-unauthenticated'
+
+# --- ADICIONADO: Configuração de Opções de Logging ---
+options:
+  logging: CLOUD_LOGGING_ONLY
