@@ -1,0 +1,20 @@
+﻿steps:
+# 1. Constrói a imagem do contêiner
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/concierge-platform-463514/concierge-pro:', '.']
+
+# 2. Envia a imagem para o Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/concierge-platform-463514/concierge-pro:']
+
+# 3. Implanta a nova imagem no Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    - 'run'
+    - 'deploy'
+    - 'concierge-pro-service' # Nome do nosso serviço no Cloud Run
+    - '--image=gcr.io/concierge-platform-463514/concierge-pro:'
+    - '--region=southamerica-east1'
+    - '--platform=managed'
+    - '--allow-unauthenticated'
