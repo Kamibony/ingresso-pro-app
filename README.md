@@ -33,3 +33,4 @@ Aplicação web e chatbot para conectar usuários a prestadores de serviço qual
 Qualquer git push no branch main irá acionar o gatilho no Google Cloud Build, que automaticamente construirá e implantará a nova versão no Cloud Run.
 Versão 1.0 no ar!AGORA VAI!
 Re-executando o build Fri Jun 20 11:58:23 PM UTC 2025 após correção de permissões.
+## Forçando a atualização final - Sat Jun 21 04:47:25 PM UTC 2025
