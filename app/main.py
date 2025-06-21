@@ -1,12 +1,9 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
-import os
-
-# Carrega as variáveis de ambiente IMEDIATAMENTE
+# O load_dotenv() deve ser a primeira coisa a ser executada
 load_dotenv()
 
-# Agora, importa os módulos do projeto
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from database import engine
 from routers import telegram, dashboard, testing
 from models import database_models
@@ -19,12 +16,7 @@ try:
 except Exception as e:
     print(f"ERRO AO CONECTAR/CRIAR TABELAS DO BANCO DE DADOS: {e}")
 
-app = FastAPI(
-    title="Concierge Pro Platform",
-    description="API para conectar clientes a prestadores de serviço.",
-    version="1.0.0"
-)
-
+app = FastAPI(title="Concierge Pro Platform", version="3.0.0")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(telegram.router)
@@ -33,4 +25,4 @@ app.include_router(testing.router)
 
 @app.get("/", tags=["Root"])
 async def read_root():
-    return {"message": "Bem-vindo à API Concierge Pro!"}
+    return {"message": "Bem-vindo à API Concierge Pro! (v3)"}

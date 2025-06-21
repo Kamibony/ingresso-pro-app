@@ -5,11 +5,10 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if DATABASE_URL is None:
-    raise ValueError("A variável de ambiente DATABASE_URL não foi definida.")
+if not DATABASE_URL:
+    raise ValueError("Variável de ambiente DATABASE_URL não definida!")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
