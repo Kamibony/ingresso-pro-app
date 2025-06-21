@@ -1,4 +1,4 @@
-﻿fastapi
+fastapi
 uvicorn[standard]
 sqlalchemy
 python-dotenv
@@ -8,3 +8,4 @@ jinja2
 googlemaps
 requests
 python-multipart
+psycopg2-binary

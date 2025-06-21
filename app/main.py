@@ -1,27 +1,36 @@
-﻿# -*- coding: utf-8 -*-
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+import os
 
-# A SOLUÇÃO: Carrega as variáveis de ambiente ANTES de qualquer outro import da nossa aplicação.
+# Carrega as variáveis de ambiente IMEDIATAMENTE
 load_dotenv()
 
-# Agora, importa os outros módulos que dependem dessas variáveis.
-from .models import database_models
-from .database import engine
-from .routers import dashboard, telegram, testing
+# Agora, importa os módulos do projeto
+from database import engine
+from routers import telegram, dashboard, testing
+from models import database_models
 
-# Cria as tabelas no banco de dados
-database_models.Base.metadata.create_all(bind=engine)
+# Tenta criar as tabelas no banco de dados
+try:
+    print("Tentando criar tabelas do banco de dados...")
+    database_models.Base.metadata.create_all(bind=engine)
+    print("Tabelas do banco de dados verificadas/criadas com sucesso.")
+except Exception as e:
+    print(f"ERRO AO CONECTAR/CRIAR TABELAS DO BANCO DE DADOS: {e}")
 
-app = FastAPI(title="Concierge Pro API")
+app = FastAPI(
+    title="Concierge Pro Platform",
+    description="API para conectar clientes a prestadores de serviço.",
+    version="1.0.0"
+)
 
-# Inclui os routers no nosso aplicativo principal
-app.include_router(dashboard.router, tags=["Dashboard"])
-app.include_router(telegram.router, prefix="/webhook", tags=["Telegram"])
-app.include_router(testing.router, prefix="/api", tags=["Testing"])
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
+app.include_router(telegram.router)
+app.include_router(dashboard.router)
+app.include_router(testing.router)
 
-@app.get("/", summary="Endpoint raiz")
-def read_root():
-    """Verifica se o servidor está online."""
-    return {"status": "Servidor do Concierge Pro está online!"}
+@app.get("/", tags=["Root"])
+async def read_root():
+    return {"message": "Bem-vindo à API Concierge Pro!"}
