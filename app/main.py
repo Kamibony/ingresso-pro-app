@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-# O load_dotenv() deve ser a primeira coisa a ser executada
+# Garante que as variáveis de ambiente sejam carregadas primeiro
 load_dotenv()
 
 from fastapi import FastAPI
@@ -16,7 +16,8 @@ try:
 except Exception as e:
     print(f"ERRO AO CONECTAR/CRIAR TABELAS DO BANCO DE DADOS: {e}")
 
-app = FastAPI(title="Concierge Pro Platform", version="3.0.0")
+app = FastAPI(title="Concierge Pro Platform", version="FINAL")
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(telegram.router)
@@ -25,4 +26,4 @@ app.include_router(testing.router)
 
 @app.get("/", tags=["Root"])
 async def read_root():
-    return {"message": "Bem-vindo à API Concierge Pro! (v3)"}
+    return {"message": "Bem-vindo à API Concierge Pro!"}
