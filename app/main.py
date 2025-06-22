@@ -17,6 +17,7 @@ except Exception as e:
 
 app = FastAPI(title="Concierge Pro Platform")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 app.include_router(telegram.router)
 app.include_router(dashboard.router)
 app.include_router(testing.router)
