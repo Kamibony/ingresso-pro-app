@@ -14,21 +14,20 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Importa a Base dos seus modelos para que o Alembic saiba quais tabelas criar
+# --- INÍCIO DA CORREÇÃO 2 ---
+# Importa a Base E O MÓDULO DOS MODELOS para que o Alembic os "enxergue"
 from app.database import Base
+from app.models import database_models
+# --- FIM DA CORREÇÃO 2 ---
+
 
 # Este é o objeto de configuração do Alembic, que dá acesso
 # aos valores no arquivo .ini
 config = context.config
 
 # Seta a URL do banco de dados a partir da variável de ambiente (.env)
-# Isso é mais seguro do que colocar a URL diretamente no alembic.ini
 if os.getenv('DATABASE_URL'):
     config.set_main_option('sqlalchemy.url', os.getenv('DATABASE_URL'))
-else:
-    # Se a variável de ambiente não for encontrada, o Alembic usará
-    # o que estiver no alembic.ini (se houver algo lá)
-    pass
 
 
 # Interpreta o arquivo de configuração para o logging do Python.
@@ -76,4 +75,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
