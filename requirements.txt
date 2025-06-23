@@ -5,7 +5,7 @@ python-dotenv
 google-generativeai
 python-telegram-bot
 jinja2
-googlemaps
 requests
 python-multipart
 psycopg2-binary
+alembic

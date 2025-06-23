@@ -1,149 +1,91 @@
-﻿# app/services/chatbot_service.py (Versão Final com Chaves Separadas)
-# -*- coding: utf-8 -*-
 import os
 import google.generativeai as genai
-import googlemaps
-import requests
-from datetime import datetime
+from ..database import SessionLocal
+from ..models.database_models import Prestador
 
-# --- CONFIGURAÇÃO DAS APIS COM CHAVES SEPARADAS ---
+# --- CONFIGURAÇÃO ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-Maps_API_KEY = os.getenv("Maps_API_KEY")
-OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
-
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY não definida no ambiente!")
 genai.configure(api_key=GEMINI_API_KEY)
-gmaps = googlemaps.Client(key=Maps_API_KEY)
-
-# --- BANCO DE DADOS EM MEMÓRIA (MVP) ---
-banco_de_dados_mvp = [
-    {
-        "id": 1,
-        "nome": "Dr. Carlos Andrade",
-        "categoria": "terapeuta",
-        "especialidades": ["ansiedade", "depressão", "TCC"],
-        "bairro": "Tambaú",
-        "disponibilidade": "Segundas e Quartas à tarde.",
-        "contato": "83 99999-0001",
-        "observacao": "Foco em Terapia Cognitivo-Comportamental (TCC) para adultos.",
-    },
-    {
-        "id": 2,
-        "nome": "Mariana Costa - Psicologia",
-        "categoria": "terapeuta",
-        "especialidades": ["casal", "família", "relacionamentos"],
-        "bairro": "Manaíra",
-        "disponibilidade": "Terças e Quintas (manhã e tarde).",
-        "contato": "83 99999-0002",
-        "observacao": "Especialista em terapia de casal e familiar.",
-    },
-    {
-        "id": 3,
-        "nome": "Ana Lima - Personal Trainer",
-        "categoria": "personal_trainer",
-        "especialidades": ["emagrecimento", "funcional", "corrida"],
-        "bairro": "Cabo Branco",
-        "disponibilidade": "Manhãs (6h às 10h).",
-        "contato": "83 98888-0001",
-        "observacao": "Treinos na orla ou em academias parceiras.",
-    },
-    {
-        "id": 4,
-        "nome": "Ricardo Ferraz - Coach",
-        "categoria": "personal_trainer",
-        "especialidades": ["hipertrofia", "força", "musculação"],
-        "bairro": "Manaíra",
-        "disponibilidade": "Tardes e noites.",
-        "contato": "83 98888-0002",
-        "observacao": "Especialista em ganho de massa muscular.",
-    },
-]
-chat_session_state = {"last_results": []}
 
 
-# --- FERRAMENTAS ---
-def encontrar_prestador(
-    categoria: str, especialidade: str = "", bairro: str = ""
-) -> dict:
-    print(
-        f"--- Ferramenta: Buscando {categoria} com especialidade '{especialidade}' no bairro '{bairro}' ---"
-    )
-    resultados = [p for p in banco_de_dados_mvp if p["categoria"] == categoria]
-    if especialidade:
-        resultados = [
-            p
-            for p in resultados
-            if especialidade.lower() in [e.lower() for e in p["especialidades"]]
-        ]
-    if bairro:
-        resultados = [p for p in resultados if bairro.lower() == p["bairro"].lower()]
-    if not resultados:
-        return {"error": f"Não encontrei prestadores com esses critérios."}
-    chat_session_state["last_results"] = resultados[:3]
-    return {"prestadores": resultados[:3]}
+# --- ESTADO DA CONVERSA (Em memória, mas separado por usuário) ---
+chat_sessions = {}
 
 
-def obter_rota_para_local(destino: str, origem: str) -> dict:
-    print(f"--- Ferramenta: Calculando rota de '{origem}' para '{destino}' ---")
+# --- FERRAMENTAS DO GEMINI QUE ACESSAM O BANCO DE DADOS ---
+def encontrar_prestador(categoria: str, especialidade: str = "", bairro: str = "") -> dict:
+    """
+    Busca prestadores de serviço no banco de dados com base nos filtros fornecidos.
+    Retorna uma lista de até 3 profissionais qualificados.
+    """
+    print(f"--- Ferramenta: Buscando no DB: {categoria} com esp: '{especialidade}' no bairro '{bairro}' ---")
+    db = SessionLocal()
     try:
-        directions_result = gmaps.directions(
-            origem, destino, mode="driving", language="pt-BR"
-        )
-        if not directions_result:
-            return {"error": "Não foi possível calcular a rota."}
-        rota = directions_result[0]["legs"][0]
-        return {
-            "rota": {
-                "distancia": rota["distance"]["text"],
-                "duracao": rota["duration"]["text"],
+        query = db.query(Prestador)
+
+        if categoria:
+            query = query.filter(Prestador.categoria.ilike(f"%{categoria}%"))
+        if especialidade:
+            query = query.filter(Prestador.especialidades.any(especialidade.lower()))
+        if bairro:
+            query = query.filter(Prestador.bairro.ilike(f"%{bairro}%"))
+        
+        resultados = query.limit(3).all()
+        
+        if not resultados:
+            return {"error": f"Desculpe, não encontrei prestadores com os critérios informados. Tente uma busca mais ampla."}
+
+        resultados_dict = [
+            {
+                "id": p.id,
+                "nome": p.nome,
+                "especialidades": p.especialidades,
+                "bairro": p.bairro,
+                "disponibilidade": p.disponibilidade,
+                "observacao": p.observacao
             }
-        }
+            for p in resultados
+        ]
+        return {"prestadores_encontrados": resultados_dict}
     except Exception as e:
-        print(f"!!! ERRO NA API DE MAPAS: {e} !!!")
-        return {"error": "Ocorreu um erro ao consultar a API de Rotas."}
+        print(f"!!! ERRO NA FERRAMENTA DE BUSCA: {e} !!!")
+        return {"error": "Ocorreu um erro interno ao buscar no banco de dados."}
+    finally:
+        db.close()
 
 
-def obter_previsao_tempo(cidade: str) -> dict:
-    print(f"--- Ferramenta: Verificando o tempo em '{cidade}' ---")
-    url = f"http://api.openweathermap.org/data/2.5/weather?appid={OPENWEATHER_API_KEY}&q={cidade}&units=metric&lang=pt_br"
-    response = requests.get(url)
-    data = response.json()
-    if data.get("cod") != 200:
-        return {"error": f"Não encontrei o tempo para '{cidade}'."}
-    main, weather = data["main"], data["weather"][0]
-    return {
-        "previsao": {
-            "cidade": data["name"],
-            "temperatura": f"{main['temp']}°C",
-            "descricao": weather["description"],
-        }
-    }
-
-
-# --- CÉREBRO DO GEMINI ---
+# --- CÉREBRO PRINCIPAL DO GEMINI ---
 system_instructions = """
-Você é o "Concierge de Bem-Estar", um assistente especialista.
-
-REGRAS:
-1.  **TRIAGEM:** Se o usuário buscar "terapeuta" ou "personal_trainer", faça uma pergunta de qualificação sobre a especialidade ou objetivo antes de chamar a ferramenta `encontrar_prestador`.
-2.  **ROTAS:** Para `obter_rota_para_local`, a origem é obrigatória. Se o usuário não fornecer, pergunte "De onde você está saindo?". Se ele responder algo genérico como "daqui", explique que precisa de um endereço ou CEP.
-3.  **CONTEXTO:** Use a memória `last_results` para entender referências como "o primeiro" ou "a opção 2".
-4.  **AÇÕES:** Sempre sugira próximos passos.
+Você é o "Concierge Pro", um assistente virtual especialista em bem-estar.
+Sua missão é conectar usuários a terapeutas e personal trainers qualificados em João Pessoa.
+Seja sempre cordial, empático e muito prestativo.
+Sempre use a ferramenta `encontrar_prestador` para buscar profissionais.
+Antes de usar a ferramenta, se necessário, faça perguntas para qualificar a busca, como "Qual especialidade você procura?" ou "Tem preferência por algum bairro?".
+Ao apresentar os resultados, formate-os de forma clara e sempre sugira um próximo passo, como "Gostaria de ver mais detalhes sobre algum deles?".
 """
-all_tools = [encontrar_prestador, obter_rota_para_local, obter_previsao_tempo]
+
+all_tools = [encontrar_prestador]
 model = genai.GenerativeModel(
     model_name="gemini-1.5-pro-latest",
     tools=all_tools,
     system_instruction=system_instructions,
 )
-chat = model.start_chat(enable_automatic_function_calling=True)
 
-
-def processar_mensagem_chatbot(user_message: str) -> str:
-    """Função central que recebe a mensagem e retorna a resposta da IA."""
+def processar_mensagem_chatbot(chat_id: str, user_message: str) -> str:
+    """
+    Função central que gerencia a conversa do usuário e retorna a resposta da IA.
+    Mantém o histórico de conversas separado por chat_id.
+    """
     try:
+        if chat_id not in chat_sessions:
+            print(f"Iniciando nova sessão de chat para o ID: {chat_id}")
+            chat_sessions[chat_id] = model.start_chat(enable_automatic_function_calling=True)
+        
+        chat = chat_sessions[chat_id]
         response = chat.send_message(user_message)
         return response.text
     except Exception as e:
-        # Este print é crucial para a depuração
         print(f"!!! ERRO NO SERVIÇO DO GEMINI: {e} !!!")
-        return "Desculpe, estou com um problema interno na comunicação com a IA. Tente novamente."
+        return "Desculpe, meu cérebro de IA encontrou um problema. Poderia tentar reformular sua pergunta?"
