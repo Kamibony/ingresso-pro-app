@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+
+# CORREÇÃO: Usando '..' para voltar um nível e encontrar 'database' e 'models'
 from ..database import get_db
 from ..models.database_models import Prestador
 
