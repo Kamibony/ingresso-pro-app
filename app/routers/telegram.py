@@ -1,32 +1,43 @@
+# app/routers/telegram.py
 from fastapi import APIRouter, Request, Response
 import telegram
-import os
 from app.services import chatbot_service
 
+# Importa a instância da aplicação do nosso novo arquivo
+from ..bot import application
+
 router = APIRouter()
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-
-if not TELEGRAM_BOT_TOKEN:
-    raise ValueError("Variável de ambiente TELEGRAM_BOT_TOKEN não encontrada.")
-
-bot = telegram.Bot(token=TELEGRAM_BOT_TOKEN)
 
 @router.post("/telegram/webhook", tags=["Telegram"])
 async def telegram_webhook(request: Request):
-    """Recebe as atualizações do Telegram via Webhook."""
+    """
+    Este endpoint recebe as atualizações do Telegram e as processa.
+    """
     try:
         update_data = await request.json()
-        update = telegram.Update.de_json(update_data, bot)
-        
-        if update.message and update.message.text:
-            chat_id = update.message.chat.id
-            user_message = update.message.text
-            
-            response_text = chatbot_service.processar_mensagem_chatbot(str(chat_id), user_message)
-            
-            await bot.send_message(chat_id=chat_id, text=response_text)
-            
+        update = telegram.Update.de_json(update_data, application.bot)
+
+        # A forma correta de passar a atualização para a biblioteca processar
+        await application.process_update(update)
+
     except Exception as e:
         print(f"!!! ERRO NO WEBHOOK DO TELEGRAM: {e} !!!")
     
     return Response(status_code=200)
+
+
+# O MessageHandler agora intercepta qualquer mensagem de texto
+@application.message_handler(None)
+async def message_handler(update: telegram.Update, context) -> None:
+    """
+    Este é o handler que efetivamente processa a mensagem do usuário.
+    """
+    if update.message and update.message.text:
+        chat_id = update.message.chat.id
+        user_message = update.message.text
+        
+        # Chama o serviço do Gemini para obter a resposta
+        response_text = chatbot_service.processar_mensagem_chatbot(str(chat_id), user_message)
+        
+        # Envia a resposta de volta para o usuário
+        await update.message.reply_text(response_text)
