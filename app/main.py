@@ -24,9 +24,6 @@ async def shutdown_event():
     await application.bot.delete_webhook()
     print("Webhook removido.")
 
-# A linha abaixo foi removida para corrigir o erro de inicialização
-# app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
 app.include_router(telegram.router)
 app.include_router(dashboard.router)
 app.include_router(testing.router)

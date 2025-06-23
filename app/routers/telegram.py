@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request, Response
 import telegram
 from telegram.ext import MessageHandler, filters
 
-# CORREÇÃO: Usando '..' para voltar um nível e encontrar 'services' e 'bot'
 from ..services import chatbot_service
 from ..bot import application
 
