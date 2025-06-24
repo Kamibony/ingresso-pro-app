@@ -7,7 +7,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA']
 
-  # 3. Executa as migrações do banco de dados com Alembic (VERSÃO CORRIGIDA)
+  # 3. Executa as migrações do banco de dados (VERSÃO CORRIGIDA)
   - name: 'gcr.io/google-appengine/exec-wrapper'
     args:
       - '-i'
@@ -17,6 +17,9 @@ steps:
       # O '--' separa os argumentos do exec-wrapper do comando a ser executado
       - '--'
       - 'alembic'
+      # Adiciona o caminho explícito para o arquivo de configuração
+      - '-c'
+      - 'alembic.ini'
       - 'upgrade'
       - 'head'
 
