@@ -7,34 +7,20 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA']
 
-  # 3. Debug: Lista os arquivos no diretório
-  # Este passo foi adicionado para depurar o erro do Alembic
-  - name: 'gcr.io/google-appengine/exec-wrapper'
+  # 3. Executa as migrações usando a própria imagem da aplicação (VERSÃO DE TESTE)
+  - name: 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
+    # Define a DATABASE_URL diretamente para o teste
+    env:
+      - 'DATABASE_URL=postgresql://postgres:Concierge2025@34.95.138.0/postgres'
+    # Executa o comando do alembic
+    entrypoint: 'alembic'
     args:
-      - '-i'
-      - 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
-      - '-e'
-      - 'DATABASE_URL=${_DATABASE_URL}'
-      - '--'
-      - 'ls'
-      - '-la'
-    id: 'Debug Files'
-
-  # 4. Executa as migrações do banco de dados
-  - name: 'gcr.io/google-appengine/exec-wrapper'
-    args:
-      - '-i'
-      - 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
-      - '-e'
-      - 'DATABASE_URL=${_DATABASE_URL}'
-      - '--'
-      - 'alembic'
       - '-c'
       - 'alembic.ini'
       - 'upgrade'
       - 'head'
 
-  # 5. Implanta a nova versão no Cloud Run
+  # 4. Implanta a nova versão no Cloud Run
   - name: 'gcr.io/google-builders/gcloud'
     args:
       - 'run'
