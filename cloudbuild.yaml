@@ -7,17 +7,18 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA']
 
-  # 3. Executa as migrações do banco de dados com Alembic
+  # 3. Executa as migrações do banco de dados com Alembic (VERSÃO CORRIGIDA)
   - name: 'gcr.io/google-appengine/exec-wrapper'
-    entrypoint: 'bash'
     args:
-      - '-c'
-      - |
-        /exec_wrapper \
-          -i southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA \
-          -e DATABASE_URL=${_DATABASE_URL} \
-          -- \
-          alembic upgrade head
+      - '-i'
+      - 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
+      - '-e'
+      - 'DATABASE_URL=${_DATABASE_URL}'
+      # O '--' separa os argumentos do exec-wrapper do comando a ser executado
+      - '--'
+      - 'alembic'
+      - 'upgrade'
+      - 'head'
 
   # 4. Implanta a nova versão no Cloud Run
   - name: 'gcr.io/google-builders/gcloud'
@@ -32,6 +33,6 @@ steps:
       - '--set-secrets=TELEGRAM_BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest'
       - '--update-env-vars=WEBHOOK_URL=${_WEBHOOK_URL}'
 
-# Configuração de logging para corrigir o erro do build
+# Configuração de logging para o build
 options:
   logging: CLOUD_LOGGING_ONLY
