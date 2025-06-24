@@ -7,12 +7,11 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA']
 
-  # 3. Executa as migrações usando a própria imagem da aplicação (VERSÃO DE TESTE)
+  # 3. Executa as migrações usando a própria imagem da aplicação
+  # USA A VERSÃO SEGURA COM VARIÁVEL DE SUBSTITUIÇÃO
   - name: 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
-    # Define a DATABASE_URL diretamente para o teste
     env:
-      - 'DATABASE_URL=postgresql://postgres:Concierge2025@34.95.138.0/postgres'
-    # Executa o comando do alembic
+      - 'DATABASE_URL=${_DATABASE_URL}'
     entrypoint: 'alembic'
     args:
       - '-c'
@@ -25,7 +24,7 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'concierge-pro-service' # Nome do nosso serviço no Cloud Run
+      - 'concierge-pro-service'
       - '--image=southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
       - '--region=southamerica-east1'
       - '--platform=managed'
@@ -33,6 +32,5 @@ steps:
       - '--set-secrets=TELEGRAM_BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest'
       - '--update-env-vars=WEBHOOK_URL=${_WEBHOOK_URL}'
 
-# Configuração de logging para o build
 options:
   logging: CLOUD_LOGGING_ONLY
