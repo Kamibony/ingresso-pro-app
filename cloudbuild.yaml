@@ -1,24 +1,39 @@
 steps:
-# 1. Constrói a imagem do contêiner
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA', '.']
+  # 1. Constrói a imagem Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA', '.']
 
-# 2. Envia a imagem para o Artifact Registry no Brasil
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA']
+  # 2. Envia a imagem para o Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA']
 
-# 3. Implanta a nova imagem no Cloud Run
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: gcloud
-  args:
-    - 'run'
-    - 'deploy'
-    - 'concierge-pro-service' # Nome do nosso serviço no Cloud Run
-    - '--image=southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
-    - '--region=southamerica-east1'
-    - '--platform=managed'
-    - '--allow-unauthenticated'
-    - '--service-account=concierge-builder@$PROJECT_ID.iam.gserviceaccount.com'
+  # 3. Executa as migrações do banco de dados com Alembic
+  # A imagem usada aqui precisa ter acesso ao Cloud SQL Proxy
+  - name: 'gcr.io/google-appengine/exec-wrapper'
+    args:
+      - '-i'
+      - 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA'
+      - '-e'
+      - 'DATABASE_URL=${_DATABASE_URL}'
+      - '--'
+      - 'alembic'
+      - 'upgrade'
+      - 'head'
 
-options:
-  logging: CLOUD_LOGGING_ONLY
+  # 4. Implanta a nova versão no Cloud Run
+  - name: 'gcr.io/google-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'concierge-pro-service'
+      - '--image'
+      - 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA'
+      - '--region'
+      - 'southamerica-east1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      # Mapeia os secrets para as variáveis de ambiente
+      - '--set-secrets=TELEGRAM_BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest'
+      # Mantém a variável WEBHOOK_URL que não é um segredo
+      - '--update-env-vars=WEBHOOK_URL=${_WEBHOOK_URL}'
