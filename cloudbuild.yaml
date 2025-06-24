@@ -1,11 +1,11 @@
 steps:
-  # 1. Constrói a imagem Docker
+  # 1. Constrói a imagem do contêiner
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA', '.']
+    args: ['build', '-t', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA', '.']
 
-  # 2. Envia a imagem para o Artifact Registry
+  # 2. Envia a imagem para o Artifact Registry no Brasil
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA']
+    args: ['push', 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA']
 
   # 3. Executa as migrações do banco de dados com Alembic
   - name: 'gcr.io/google-appengine/exec-wrapper'
@@ -14,7 +14,7 @@ steps:
       - '-c'
       - |
         /exec_wrapper \
-          -i southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA \
+          -i southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA \
           -e DATABASE_URL=${_DATABASE_URL} \
           -- \
           alembic upgrade head
@@ -24,13 +24,10 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'concierge-pro-service'
-      - '--image'
-      - 'southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro-repo/concierge-pro-app:$SHORT_SHA'
-      - '--region'
-      - 'southamerica-east1'
-      - '--platform'
-      - 'managed'
+      - 'concierge-pro-service' # Nome do nosso serviço no Cloud Run
+      - '--image=southamerica-east1-docker.pkg.dev/$PROJECT_ID/concierge-pro/concierge-pro-service:$COMMIT_SHA'
+      - '--region=southamerica-east1'
+      - '--platform=managed'
       - '--allow-unauthenticated'
       - '--set-secrets=TELEGRAM_BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest'
       - '--update-env-vars=WEBHOOK_URL=${_WEBHOOK_URL}'
