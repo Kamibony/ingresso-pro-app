@@ -8,3 +8,5 @@ __pycache__/
 
 # Pasta do ambiente virtual
 venv/
+
+.env

@@ -31,8 +31,8 @@ if os.getenv('DATABASE_URL'):
 
 
 # Interpreta o arquivo de configuração para o logging do Python.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+# if config.config_file_name is not None:
+#     fileConfig(config.config_file_name)
 
 # Adiciona o MetaData do seu modelo aqui para o suporte de 'autogenerate'
 target_metadata = Base.metadata

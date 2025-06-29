@@ -1,3 +1,4 @@
+import telegram
 import os
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
@@ -31,6 +32,7 @@ application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle
 
 @app.on_event("startup")
 async def startup_event():
+    await application.initialize()
     """Configura o webhook do Telegram na inicialização."""
     webhook_url = os.getenv("WEBHOOK_URL")
     if not webhook_url:
@@ -57,3 +59,5 @@ app.include_router(testing.router, tags=["Testing"])
 @app.get("/", summary="Endpoint raiz da API", include_in_schema=False)
 def read_root():
     return {"status": "API do Concierge Pro está no ar!"}
+
+

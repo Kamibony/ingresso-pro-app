@@ -77,8 +77,7 @@ def generate_response(session_id: str, message: str, db: Session) -> str:
     # Inicia a sessão de chat com o histórico
     chat_session = model.start_chat(
         history=chat_history_for_model,
-        tool_config={'function_calling_config': 'AUTO'},
-        tools=get_tools(db)
+        enable_automatic_function_calling=True,
     )
 
     # Envia a nova mensagem e obtém a resposta
