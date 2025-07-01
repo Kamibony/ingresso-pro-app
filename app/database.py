@@ -1,22 +1,16 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+﻿from google.cloud import firestore
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Pega o ID do projeto a partir das variáveis de ambiente
+# (Você precisará adicionar GOOGLE_CLOUD_PROJECT ao seu arquivo .env)
+project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
 
-if not DATABASE_URL:
-    raise ValueError("Variável de ambiente DATABASE_URL não definida!")
+if not project_id:
+    raise ValueError("A variável de ambiente GOOGLE_CLOUD_PROJECT não foi definida!")
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# Instancia o cliente do Firestore, especificando o projeto.
+# A biblioteca usará automaticamente as credenciais que
+# você configurou com 'gcloud auth application-default login'.
+db = firestore.Client(project=project_id)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+print(f"✅ Cliente Firestore inicializado para o projeto: {db.project}")
